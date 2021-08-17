@@ -1,6 +1,6 @@
 {
   "name": "react-dnd-scrolling",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "A cross browser solution to scrolling during drag and drop.",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
