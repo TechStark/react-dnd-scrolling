@@ -8,9 +8,9 @@
   "dependencies": {
     "prop-types": "^15.7.2",
     "react": "^16.14.0",
-    "react-dnd": "^14.0.2",
-    "react-dnd-scrolling": "^1.2.1",
-    "react-dnd-touch-backend": "^14.0.0",
+    "react-dnd": "^15.1.1",
+    "react-dnd-scrolling": "^1.2.2",
+    "react-dnd-touch-backend": "^15.1.1",
     "react-dom": "^16.14.0"
   },
   "scripts": {

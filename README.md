@@ -2,7 +2,7 @@
 
 Cross browser compatible scrolling containers for drag and drop interactions.
 
-Works with `react-dnd` `10.x`, `11.x`, `14.x`.
+Works with `react-dnd` `10.x`, `11.x`, `14.x`, `15.x`.
 
 ### Build Status
 
