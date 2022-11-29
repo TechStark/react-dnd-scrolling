@@ -2,10 +2,22 @@
   "name": "react-dnd-scrolling",
   "version": "1.2.4",
   "description": "A cross browser solution to scrolling during drag and drop.",
-  "main": "lib/index.js",
+  "type": "module",
+  "exports": {
+    "util": {
+      "import": "./lib/esm/util.js",
+      "require": "./lib/cjs/util.cjs"
+    },
+    "default": {
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.cjs"
+    }
+  },
   "types": "types/index.d.ts",
   "scripts": {
-    "build": "rm -rf lib && babel src --out-dir lib",
+    "build": "rm -rf lib && npm run build:cjs && npm run build:esm",
+    "build:cjs": "babel --config-file ./babel.config.cjs.json src --out-dir lib/cjs",
+    "build:esm": "babel src --out-dir lib/esm",
     "lint": "eslint src",
     "pretest": "npm run lint",
     "test": "mocha test",
@@ -38,6 +50,7 @@
     "react-display-name": "^0.2.5"
   },
   "devDependencies": {
+    "@node-loader/babel": "^2.0.1",
     "@babel/cli": "^7.17.6",
     "@babel/core": "^7.17.8",
     "@babel/eslint-parser": "^7.17.0",
@@ -56,7 +69,7 @@
     "mocha": "^9.2.2",
     "prettier": "^2.6.1",
     "react": "^18.0.0",
-    "react-dnd": "^15.1.1",
+    "react-dnd": "^16.0.1",
     "react-dom": "^18.0.0",
     "sinon": "^13.0.1",
     "sinon-chai": "^3.7.0",

@@ -6,7 +6,7 @@ import throttle from 'lodash.throttle';
 import raf from 'raf';
 import getDisplayName from 'react-display-name';
 import hoist from 'hoist-non-react-statics';
-import { noop, intBetween, getCoords } from './util';
+import { noop, intBetween, getCoords } from './util.js';
 
 const DEFAULT_BUFFER = 150;
 

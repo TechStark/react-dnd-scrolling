@@ -1,10 +1,10 @@
-import { createHorizontalStrength, createVerticalStrength } from '../src';
+import { createHorizontalStrength, createVerticalStrength } from '../src/index.js';
 
 describe('strength functions', function () {
-  let hFn = createHorizontalStrength(150);
-  let vFn = createVerticalStrength(150);
-  let box = { x: 0, y: 0, w: 600, h: 600 };
-  let lilBox = { x: 0, y: 0, w: 100, h: 100 };
+  const hFn = createHorizontalStrength(150);
+  const vFn = createVerticalStrength(150);
+  const box = { x: 0, y: 0, w: 600, h: 600 };
+  const lilBox = { x: 0, y: 0, w: 100, h: 100 };
 
   describe('horizontalStrength', function () {
     it('should return -1 when all the way at the left', function () {

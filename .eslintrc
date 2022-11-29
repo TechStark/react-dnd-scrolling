@@ -14,6 +14,7 @@
   "extends": ["airbnb", "plugin:prettier/recommended"],
 
   "rules": {
+    "import/extensions": "off",
     "import/no-unresolved": "warn",
     "no-else-return": "off",
     "no-plusplus": "off",
