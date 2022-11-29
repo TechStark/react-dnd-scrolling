@@ -46,8 +46,7 @@
     "hoist-non-react-statics": "3.x",
     "lodash.throttle": "^4.1.1",
     "prop-types": "15.x",
-    "raf": "^3.4.1",
-    "react-display-name": "^0.2.5"
+    "raf": "^3.4.1"
   },
   "devDependencies": {
     "@node-loader/babel": "^2.0.1",

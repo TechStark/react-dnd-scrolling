@@ -4,11 +4,17 @@ import { DndContext } from 'react-dnd';
 import { findDOMNode } from 'react-dom';
 import throttle from 'lodash.throttle';
 import raf from 'raf';
-import getDisplayName from 'react-display-name';
 import hoist from 'hoist-non-react-statics';
 import { noop, intBetween, getCoords } from './util.js';
 
 const DEFAULT_BUFFER = 150;
+
+const getDisplayName = PassedComponent =>
+  PassedComponent.displayName ||
+  PassedComponent.name ||
+  (typeof PassedComponent === 'string' && PassedComponent.length > 0
+    ? PassedComponent
+    : 'Unknown');
 
 export function createHorizontalStrength(_buffer) {
   return function defaultHorizontalStrength({ x, w, y, h }, point) {
