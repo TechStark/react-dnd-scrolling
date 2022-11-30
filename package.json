@@ -43,19 +43,20 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "defaults": "^1.0.4",
     "hoist-non-react-statics": "3.x",
     "lodash.throttle": "^4.1.1",
     "prop-types": "15.x",
     "raf": "^3.4.1"
   },
   "devDependencies": {
-    "@node-loader/babel": "^2.0.1",
     "@babel/cli": "^7.17.6",
     "@babel/core": "^7.17.8",
     "@babel/eslint-parser": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.16.7",
     "@babel/register": "^7.17.7",
+    "@node-loader/babel": "^2.0.1",
     "chai": "^4.3.6",
     "eslint": "^8.12.0",
     "eslint-config-airbnb": "^19.0.4",

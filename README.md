@@ -41,7 +41,34 @@ export default class App extends Component {
 }
 ```
 
-Note: You should replace the original `div` you would like to make scrollable with the `ScrollingComponent`. 
+Note: You should replace the original `div` you would like to make scrollable with the `ScrollingComponent`.
+
+### useDndScrolling
+```js
+import React, { Component, useRef } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useDndScrolling } from 'react-dnd-scrolling';
+import DragItem from './DragItem';
+import './App.css';
+
+const ITEMS = [1,2,3,4,5,6,7,8,9,10];
+
+export default function App() {
+  const ref = useRef();
+  useDndScrolling(ref);
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div ref={ref} className="App">
+        {ITEMS.map(n => (
+          <DragItem key={n} label={`Item ${n}`} />
+        ))}
+      </div>
+    </DndProvider>
+  );
+}
+```
 
 ### Easing Example
 
@@ -92,7 +119,7 @@ export default App(props) {
   );
 }
 ```
-Note: You should replace the original `div` you would like to make scrollable with the `ScrollingComponent`. 
+Note: You should replace the original `div` you would like to make scrollable with the `ScrollingComponent`.
 
 ### Virtualized Example
 

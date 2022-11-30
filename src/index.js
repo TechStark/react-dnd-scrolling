@@ -1,6 +1,7 @@
-import React, { Component, useEffect, useRef, useCallback, useContext } from 'react';
+import React, { useEffect, useRef, useCallback, useContext } from 'react';
 import PropTypes from 'prop-types';
-import { useDragDropManager } from 'react-dnd';
+import defaults from 'defaults';
+import { DndContext } from 'react-dnd';
 import throttle from 'lodash.throttle';
 import raf from 'raf';
 import hoist from 'hoist-non-react-statics';
@@ -55,168 +56,200 @@ export const defaultHorizontalStrength = createHorizontalStrength(DEFAULT_BUFFER
 
 export const defaultVerticalStrength = createVerticalStrength(DEFAULT_BUFFER);
 
-export default function createScrollingComponent(WrappedComponent) {
-  function ScrollingComponent(props) {
-    const scaleX = useRef(0);
-    const scaleY = useRef(0);
-    const frame = useRef(0);
-    const attached = useRef(0);
-    const dragging = useRef(0);
-    const clearMonitorSubscription = useRef();
+const defaultProps = {
+  onScrollChange: noop,
+  verticalStrength: defaultVerticalStrength,
+  horizontalStrength: defaultHorizontalStrength,
+  strengthMultiplier: 30,
+  dragDropManager: null
+};
 
-    const componentRef = useRef();
-    const dragDropManager = useDragDropManager();
+export function useDndScrolling(componentRef, passedOptions) {
+  const props = defaults(passedOptions, defaultProps);
+  const scaleX = useRef(0);
+  const scaleY = useRef(0);
+  const frame = useRef(0);
+  const attached = useRef(false);
+  const dragging = useRef(false);
 
-    const startScrolling = React.useCallback(() => {
-      let i = 0;
-      const tick = () => {
-        const { strengthMultiplier, onScrollChange } = props;
+  const { dragDropManager: dragDropManagerCtx } = useContext(DndContext);
+  const dragDropManager = props.dragDropManager ?? dragDropManagerCtx;
 
-        // stop scrolling if there's nothing to do
-        if (strengthMultiplier === 0 || scaleX.current + scaleY.current === 0) {
-          // eslint-disable-next-line no-use-before-define
-          stopScrolling();
-          return;
-        }
-
-        // there's a bug in safari where it seems like we can't get
-        // mousemove events from a container that also emits a scroll
-        // event that same frame. So we double the strengthMultiplier and only adjust
-        // the scroll position at 30fps
-        if (i++ % 2) {
-          const {
-            scrollLeft,
-            scrollTop,
-            scrollWidth,
-            scrollHeight,
-            clientWidth,
-            clientHeight
-          } = componentRef.current;
-
-          const newLeft = scaleX.current
-            ? (componentRef.current.scrollLeft = intBetween(
-                0,
-                scrollWidth - clientWidth,
-                scrollLeft + scaleX.current * strengthMultiplier
-              ))
-            : scrollLeft;
-
-          const newTop = scaleY.current
-            ? (componentRef.current.scrollTop = intBetween(
-                0,
-                scrollHeight - clientHeight,
-                scrollTop + scaleY.current * strengthMultiplier
-              ))
-            : scrollTop;
-
-          onScrollChange(newLeft, newTop);
-        }
-        frame.current = raf(tick);
-      };
-
-      tick();
-    }, []);
-
-    // Update scaleX and scaleY every 100ms or so
-    // and start scrolling if necessary
-    const updateScrolling = React.useMemo(
-      () =>
-        throttle(
-          evt => {
-            const {
-              left: x,
-              top: y,
-              width: w,
-              height: h
-            } = componentRef.current.getBoundingClientRect();
-            const box = { x, y, w, h };
-            const coords = getCoords(evt);
-
-            // calculate strength
-            scaleX.current = props.horizontalStrength(box, coords);
-            scaleY.current = props.verticalStrength(box, coords);
-
-            // start scrolling if we need to
-            if (!frame.current && (scaleX.current || scaleY.current)) {
-              startScrolling();
-            }
-          },
-          100,
-          { trailing: false }
-        ),
-      []
+  if (!dragDropManager) {
+    throw new Error(
+      'Unable to get dragDropManager from context. Provide DnDContext or pass dragDropManager via options to useDndScrolling.'
     );
+  }
 
-    const attach = useCallback(() => {
-      attached.current = true;
-      window.document.body.addEventListener('dragover', updateScrolling);
-      window.document.body.addEventListener('touchmove', updateScrolling);
-    }, []);
+  const monitor = React.useMemo(() => dragDropManager.getMonitor(), [dragDropManager]);
 
-    const detach = useCallback(() => {
-      attached.current = false;
-      window.document.body.removeEventListener('dragover', updateScrolling);
-      window.document.body.removeEventListener('touchmove', updateScrolling);
-    }, []);
+  const startScrolling = React.useCallback(() => {
+    let i = 0;
+    const tick = () => {
+      const { strengthMultiplier, onScrollChange } = props;
 
-    const stopScrolling = React.useCallback(() => {
-      detach();
-      scaleX.current = 0;
-      scaleY.current = 0;
-
-      if (frame.current) {
-        raf.cancel(frame.current);
-        frame.current = null;
-      }
-    }, []);
-
-    const handleMonitorChange = useCallback(() => {
-      const isDragging = dragDropManager.getMonitor().isDragging();
-
-      if (!dragging.current && isDragging) {
-        dragging.current = true;
-      } else if (dragging.current && !isDragging) {
-        dragging.current = false;
+      // stop scrolling if there's nothing to do
+      if (strengthMultiplier === 0 || scaleX.current + scaleY.current === 0) {
+        // eslint-disable-next-line no-use-before-define
         stopScrolling();
+        return;
       }
-    }, []);
 
-    const handleEvent = useCallback(evt => {
+      // there's a bug in safari where it seems like we can't get
+      // mousemove events from a container that also emits a scroll
+      // event that same frame. So we double the strengthMultiplier and only adjust
+      // the scroll position at 30fps
+      if (i++ % 2) {
+        const {
+          scrollLeft,
+          scrollTop,
+          scrollWidth,
+          scrollHeight,
+          clientWidth,
+          clientHeight
+        } = componentRef.current;
+
+        const newLeft = scaleX.current
+          ? // eslint-disable-next-line no-param-reassign
+            (componentRef.current.scrollLeft = intBetween(
+              0,
+              scrollWidth - clientWidth,
+              scrollLeft + scaleX.current * strengthMultiplier
+            ))
+          : scrollLeft;
+
+        const newTop = scaleY.current
+          ? // eslint-disable-next-line no-param-reassign
+            (componentRef.current.scrollTop = intBetween(
+              0,
+              scrollHeight - clientHeight,
+              scrollTop + scaleY.current * strengthMultiplier
+            ))
+          : scrollTop;
+
+        onScrollChange(newLeft, newTop);
+      }
+      frame.current = raf(tick);
+    };
+
+    tick();
+  }, []);
+
+  // Update scaleX and scaleY every 100ms or so
+  // and start scrolling if necessary
+  const updateScrolling = React.useMemo(
+    () =>
+      throttle(
+        evt => {
+          if (!componentRef.current) {
+            return;
+          }
+
+          const {
+            left: x,
+            top: y,
+            width: w,
+            height: h
+          } = componentRef.current.getBoundingClientRect();
+          const box = { x, y, w, h };
+          const coords = getCoords(evt);
+
+          // calculate strength
+          scaleX.current = props.horizontalStrength(box, coords);
+          scaleY.current = props.verticalStrength(box, coords);
+
+          // start scrolling if we need to
+          if (!frame.current && (scaleX.current || scaleY.current)) {
+            startScrolling();
+          }
+        },
+        100,
+        { trailing: false }
+      ),
+    []
+  );
+
+  const attach = useCallback(() => {
+    attached.current = true;
+    window.document.body.addEventListener('dragover', updateScrolling);
+    window.document.body.addEventListener('touchmove', updateScrolling);
+  }, []);
+
+  const detach = useCallback(() => {
+    attached.current = false;
+    window.document.body.removeEventListener('dragover', updateScrolling);
+    window.document.body.removeEventListener('touchmove', updateScrolling);
+  }, []);
+
+  const stopScrolling = React.useCallback(() => {
+    detach();
+    scaleX.current = 0;
+    scaleY.current = 0;
+
+    if (frame.current) {
+      raf.cancel(frame.current);
+      frame.current = null;
+    }
+  }, []);
+
+  const handleEvent = useCallback(
+    evt => {
       if (dragging.current && !attached.current) {
         attach();
         updateScrolling(evt);
       }
-    }, []);
+    },
+    [dragDropManager]
+  );
 
-    useEffect(() => {
-      componentRef.current.addEventListener('dragover', handleEvent);
-      // touchmove events don't seem to work across siblings, so we unfortunately
-      // have to attach the listeners to the body
-      window.document.body.addEventListener('touchmove', handleEvent);
+  useEffect(() => {
+    if (!dragging.current && monitor.isDragging()) {
+      dragging.current = true;
+    } else if (dragging.current && !monitor.isDragging()) {
+      dragging.current = false;
+      stopScrolling();
+    }
+  }, [monitor.isDragging()]);
 
-      clearMonitorSubscription.current = dragDropManager
-        .getMonitor()
-        .subscribeToStateChange(() => handleMonitorChange());
+  useEffect(() => {
+    if (!componentRef.current) {
+      return () => {};
+    }
+    componentRef.current.addEventListener('dragover', handleEvent);
+    // touchmove events don't seem to work across siblings, so we unfortunately
+    // have to attach the listeners to the body
+    window.document.body.addEventListener('touchmove', handleEvent);
 
-      return () => {
+    return () => {
+      if (componentRef.current) {
         componentRef.current.removeEventListener('dragover', handleEvent);
-        window.document.body.removeEventListener('touchmove', handleEvent);
-        clearMonitorSubscription();
-        stopScrolling();
-      };
-    }, []);
+      }
+      window.document.body.removeEventListener('touchmove', handleEvent);
+      stopScrolling();
+    };
+  }, [dragDropManager]);
+}
 
-    const {
-      // not passing down these props
+export default function createScrollingComponent(WrappedComponent) {
+  function ScrollingComponent({
+    strengthMultiplier,
+    verticalStrength,
+    horizontalStrength,
+    onScrollChange,
+    dragDropManager,
+
+    ...passedProps
+  }) {
+    const ref = useRef(null);
+    useDndScrolling(ref, {
       strengthMultiplier,
       verticalStrength,
       horizontalStrength,
       onScrollChange,
+      dragDropManager
+    });
 
-      ...rest
-    } = props;
-
-    return <WrappedComponent {...rest} ref={componentRef} />;
+    return <WrappedComponent {...passedProps} ref={ref} />;
   }
 
   ScrollingComponent.displayName = `Scrolling(${getDisplayName(WrappedComponent)})`;
@@ -224,14 +257,10 @@ export default function createScrollingComponent(WrappedComponent) {
     onScrollChange: PropTypes.func,
     verticalStrength: PropTypes.func,
     horizontalStrength: PropTypes.func,
-    strengthMultiplier: PropTypes.number
+    strengthMultiplier: PropTypes.number,
+    dragDropManager: PropTypes.any
   };
-  ScrollingComponent.defaultProps = {
-    onScrollChange: noop,
-    verticalStrength: defaultVerticalStrength,
-    horizontalStrength: defaultHorizontalStrength,
-    strengthMultiplier: 30
-  };
+  ScrollingComponent.defaultProps = defaultProps;
 
   return hoist(ScrollingComponent, WrappedComponent);
 }
