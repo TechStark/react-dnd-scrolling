@@ -80,7 +80,7 @@ export function useDndScrolling(componentRef, passedOptions) {
     return () => {
       monitor.stop();
     };
-  }, [componentRef, dragDropManager, passedOptions]);
+  }, [componentRef.current, dragDropManager, passedOptions]);
 }
 
 export default function createScrollingComponent(WrappedComponent) {
