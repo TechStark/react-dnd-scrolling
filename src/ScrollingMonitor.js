@@ -20,7 +20,7 @@ export default class ScrollingMonitor {
     this.container.addEventListener('dragover', this.handleEvent);
     // touchmove events don't seem to work across siblings, so we unfortunately
     // have to attach the listeners to the body
-    window.document.body.addEventListener('touchmove', this.handleEvent);
+    this.container.ownerDocument.body.addEventListener('touchmove', this.handleEvent);
 
     this.clearMonitorSubscription = this.dragDropManager
       .getMonitor()
@@ -29,7 +29,7 @@ export default class ScrollingMonitor {
 
   stop() {
     this.container.removeEventListener('dragover', this.handleEvent);
-    window.document.body.removeEventListener('touchmove', this.handleEvent);
+    this.container.ownerDocument.body.removeEventListener('touchmove', this.handleEvent);
     this.clearMonitorSubscription();
     this.stopScrolling();
   }
@@ -54,14 +54,14 @@ export default class ScrollingMonitor {
 
   attach() {
     this.attached = true;
-    window.document.body.addEventListener('dragover', this.updateScrolling);
-    window.document.body.addEventListener('touchmove', this.updateScrolling);
+    this.container.ownerDocument.body.addEventListener('dragover', this.updateScrolling);
+    this.container.ownerDocument.body.addEventListener('touchmove', this.updateScrolling);
   }
 
   detach() {
     this.attached = false;
-    window.document.body.removeEventListener('dragover', this.updateScrolling);
-    window.document.body.removeEventListener('touchmove', this.updateScrolling);
+    this.container.ownerDocument.body.removeEventListener('dragover', this.updateScrolling);
+    this.container.ownerDocument.body.removeEventListener('touchmove', this.updateScrolling);
   }
 
   // Update scaleX and scaleY every 100ms or so
