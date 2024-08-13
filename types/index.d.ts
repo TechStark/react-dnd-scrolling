@@ -19,7 +19,7 @@ export type StrengthFuncton = StrengthFunction;
 
 export function useDndScrolling(
   ref: React.Ref<any>,
-  options: {
+  options?: {
     verticalStrength?: StrengthFunction;
     horizontalStrength?: StrengthFunction;
     strengthMultiplier?: number;
